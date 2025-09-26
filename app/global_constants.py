@@ -7,6 +7,7 @@ class SuccessMessage(str, Enum):
     RECORD_CREATED = "Record created successfully."
     RECORD_UPDATED = "Record updated successfully."
     RECORD_DELETED = "Record deleted successfully."
+    RECORD_RETRIEVED = "Record retrieved successfully."
 
 
 class ErrorMessage(str, Enum):
