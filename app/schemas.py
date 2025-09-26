@@ -14,3 +14,6 @@ class BlogResponse(BlogBase):
 
     class Config:
         orm_mode = True
+
+class BlogUpdate(BlogBase):
+    pass

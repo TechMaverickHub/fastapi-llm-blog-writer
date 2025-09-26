@@ -38,7 +38,7 @@ def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
     return get_response_schema(new_blog, SuccessMessage.RECORD_CREATED.value, status.HTTP_201_CREATED)
 
 
-@app.get("/blogs-list")
+@app.get("/blogs-list", response_model=list[schemas.BlogResponse])
 def get_blogs(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return get_response_schema(blogs, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
