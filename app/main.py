@@ -25,9 +25,6 @@ def get_db():
         db.close()
 
 
-class Blog(BaseModel):
-    title: str
-    content: str
 
 
 @app.post("/blogs")
