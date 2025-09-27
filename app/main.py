@@ -1,10 +1,15 @@
 from fastapi import FastAPI, Depends, status, HTTPException
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.database import engine, SessionLocal
 from app.exceptions import register_exception_handlers
 from app.global_constants import SuccessMessage, ErrorMessage
+from app.jwt_utils import create_access_token, create_refresh_token
+from app.models import User
+from app.schemas import UserSignup, TokenResponse, UserLogin, UserResponse
+from app.security import hash_password, verify_password
 from app.utils import get_response_schema
 
 try:
@@ -19,6 +24,7 @@ app = FastAPI(title="Blog API with Supabase", version="0.1.0", debug=True)
 
 register_exception_handlers(app)
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Dependency to get DB session
 def get_db():
@@ -74,3 +80,40 @@ def delete_blog(id: int, db: Session = Depends(get_db)):
     db.delete(blog_record)
     db.commit()
     return get_response_schema({}, SuccessMessage.RECORD_DELETED.value, status.HTTP_204_NO_CONTENT)
+
+@app.post("/signup", response_model=UserResponse)
+def signup(payload: UserSignup, db: Session = Depends(get_db)):
+    existing_user = db.query(User).filter(User.email == payload.email).first()
+    print("Existing user============")
+    print(existing_user)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already exists")
+
+    user = User(
+        email=payload.email,
+        hashed_password=hash_password(payload.password),
+        first_name=payload.first_name,
+        last_name=payload.last_name
+    )
+    print("User============")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+# Login
+@app.post("/login", response_model=TokenResponse)
+def login(payload: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user or not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    user_response = UserResponse.model_validate(user)
+    return_data={
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user": user_response
+    }
+    return get_response_schema(return_data, SuccessMessage.LOGIN_SUCCESS.value, status.HTTP_200_OK)
