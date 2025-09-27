@@ -16,3 +16,6 @@ class ErrorMessage(str, Enum):
     BAD_REQUEST = "Bad request."
     NOT_FOUND = "Record not found."
     SOMETHING_WENT_WRONG = "Something went wrong. Please try again later."
+
+class ErrorKeys(str, Enum):
+    NON_FIELD_ERROR = "detail"

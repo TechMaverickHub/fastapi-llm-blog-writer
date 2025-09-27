@@ -48,7 +48,7 @@ def get_blogs(db: Session = Depends(get_db)):
 def get_blog(id: int, db: Session = Depends(get_db)):
     blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog_record:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
+        return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
 
     return get_response_schema(blog_record, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
 
