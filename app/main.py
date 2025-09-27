@@ -29,7 +29,7 @@ def get_db():
         db.close()
 
 
-@app.post("/blogs")
+@app.post("/blog")
 def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
     new_blog = models.Blog(title=blog.title, content=blog.content)
     db.add(new_blog)
@@ -38,16 +38,29 @@ def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
     return get_response_schema(new_blog, SuccessMessage.RECORD_CREATED.value, status.HTTP_201_CREATED)
 
 
-@app.get("/blogs-list", response_model=list[schemas.BlogResponse])
+@app.get("/blog-list", response_model=list[schemas.BlogResponse])
 def get_blogs(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return get_response_schema(blogs, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
 
 
-@app.get("/blogs/{id}")
+@app.get("/blog/{id}")
 def get_blog(id: int, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id).first()
+    blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
+    if not blog_record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
+
+    return get_response_schema(blog_record, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
+
+@app.put("/blog/{id}")
+def update_blog(id: int, blog: schemas.BlogUpdate, db: Session = Depends(get_db)):
+    blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
 
-    return get_response_schema(blog, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
+    blog_record.title = blog.title
+    blog_record.content = blog.content
+    db.add(blog_record)
+    db.commit()
+    db.refresh(blog_record)
+    return get_response_schema(blog_record, SuccessMessage.RECORD_UPDATED.value, status.HTTP_200_OK)
