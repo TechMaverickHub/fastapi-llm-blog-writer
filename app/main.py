@@ -40,8 +40,8 @@ def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
 
 @app.get("/blog-list", response_model=list[schemas.BlogResponse])
 def get_blogs(db: Session = Depends(get_db)):
-    blogs = db.query(models.Blog).all()
-    return get_response_schema(blogs, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
+    blog_list = db.query(models.Blog).order_by(models.Blog.created_at.desc()).all()
+    return get_response_schema(blog_list, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
 
 
 @app.get("/blog/{id}")
@@ -64,3 +64,13 @@ def update_blog(id: int, blog: schemas.BlogUpdate, db: Session = Depends(get_db)
     db.commit()
     db.refresh(blog_record)
     return get_response_schema(blog_record, SuccessMessage.RECORD_UPDATED.value, status.HTTP_200_OK)
+
+
+@app.delete("/blog/{id}")
+def delete_blog(id: int, db: Session = Depends(get_db)):
+    blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
+    if not blog_record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
+    db.delete(blog_record)
+    db.commit()
+    return get_response_schema({}, SuccessMessage.RECORD_DELETED.value, status.HTTP_204_NO_CONTENT)
