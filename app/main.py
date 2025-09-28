@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Depends, status, HTTPException
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app import models, schemas
