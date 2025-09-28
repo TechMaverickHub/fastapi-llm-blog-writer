@@ -26,7 +26,7 @@ app = FastAPI(title="Blog API with Supabase", version="0.1.0", debug=True)
 register_exception_handlers(app)
 
 @app.post("/blog")
-def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
+def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_blog = models.Blog(title=blog.title, content=blog.content)
     db.add(new_blog)
     db.commit()
@@ -35,7 +35,7 @@ def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/blog-list", response_model=list[schemas.BlogResponse])
-def get_blogs(db: Session = Depends(get_db)):
+def get_blogs(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     blog_list = db.query(models.Blog).order_by(models.Blog.updated_at.desc()).all()
     return get_response_schema(blog_list, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
 
@@ -54,7 +54,7 @@ def get_blog(id: int, db: Session = Depends(get_db), current_user: User = Depend
     return get_response_schema(blog_record, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
 
 @app.put("/blog/{id}")
-def update_blog(id: int, blog: schemas.BlogUpdate, db: Session = Depends(get_db)):
+def update_blog(id: int, blog: schemas.BlogUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
@@ -68,7 +68,7 @@ def update_blog(id: int, blog: schemas.BlogUpdate, db: Session = Depends(get_db)
 
 
 @app.delete("/blog/{id}")
-def delete_blog(id: int, db: Session = Depends(get_db)):
+def delete_blog(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog_record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
@@ -79,8 +79,7 @@ def delete_blog(id: int, db: Session = Depends(get_db)):
 @app.post("/signup", response_model=UserResponse)
 def signup(payload: UserSignup, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == payload.email).first()
-    print("Existing user============")
-    print(existing_user)
+
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already exists")
 
@@ -90,7 +89,6 @@ def signup(payload: UserSignup, db: Session = Depends(get_db)):
         first_name=payload.first_name,
         last_name=payload.last_name
     )
-    print("User============")
     db.add(user)
     db.commit()
     db.refresh(user)
