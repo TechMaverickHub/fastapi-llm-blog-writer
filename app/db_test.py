@@ -1,7 +1,7 @@
 # test_supabase.py
-import psycopg2
-from psycopg2 import sql
 import os
+
+import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()

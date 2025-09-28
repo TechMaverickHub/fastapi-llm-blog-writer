@@ -9,6 +9,8 @@ class SuccessMessage(str, Enum):
     RECORD_DELETED = "Record deleted successfully."
     RECORD_RETRIEVED = "Record retrieved successfully."
 
+    LOGIN_SUCCESS = "Login successful."
+
 
 class ErrorMessage(str, Enum):
     """Error messages used across the application."""
