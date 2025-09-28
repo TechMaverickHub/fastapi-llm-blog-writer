@@ -1,8 +1,13 @@
 # app/jwt_utils.py
+import os
+
 import jwt
 from datetime import datetime, timedelta
 
-SECRET = "SUPERSECRETJWT"
+from dotenv import load_dotenv
+
+load_dotenv()
+SECRET = os.getenv("SECRET_KEY")
 ACCESS_TOKEN_EXPIRE = 3600   # 1 hour
 REFRESH_TOKEN_EXPIRE = 7*24*3600  # 7 days
 
