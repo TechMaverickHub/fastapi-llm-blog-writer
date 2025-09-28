@@ -3,7 +3,8 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app import models, schemas
-from app.database import engine, SessionLocal
+from app.auth import get_current_user
+from app.database import engine, get_db
 from app.exceptions import register_exception_handlers
 from app.global_constants import SuccessMessage, ErrorMessage
 from app.jwt_utils import create_access_token, create_refresh_token
@@ -27,12 +28,7 @@ register_exception_handlers(app)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Dependency to get DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 
 @app.post("/blog")
@@ -46,12 +42,12 @@ def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
 
 @app.get("/blog-list", response_model=list[schemas.BlogResponse])
 def get_blogs(db: Session = Depends(get_db)):
-    blog_list = db.query(models.Blog).order_by(models.Blog.created_at.desc()).all()
+    blog_list = db.query(models.Blog).order_by(models.Blog.updated_at.desc()).all()
     return get_response_schema(blog_list, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
 
 
 @app.get("/blog/{id}")
-def get_blog(id: int, db: Session = Depends(get_db)):
+def get_blog(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog_record:
         return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
@@ -104,7 +100,7 @@ def signup(payload: UserSignup, db: Session = Depends(get_db)):
 # Login
 @app.post("/login", response_model=TokenResponse)
 def login(payload: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(User.email == payload.email,User.is_active == True).first()
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
