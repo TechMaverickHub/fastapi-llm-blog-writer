@@ -25,12 +25,6 @@ app = FastAPI(title="Blog API with Supabase", version="0.1.0", debug=True)
 
 register_exception_handlers(app)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Dependency to get DB session
-
-
-
 @app.post("/blog")
 def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db)):
     new_blog = models.Blog(title=blog.title, content=blog.content)
@@ -48,6 +42,11 @@ def get_blogs(db: Session = Depends(get_db)):
 
 @app.get("/blog/{id}")
 def get_blog(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    print("Current user============")
+    print(current_user.id)
+    print(current_user.email)
+    print(current_user.first_name)
+    print(current_user.last_name)
     blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog_record:
         return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
