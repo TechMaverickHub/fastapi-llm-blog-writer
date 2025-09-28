@@ -26,7 +26,7 @@ register_exception_handlers(app)
 
 @app.post("/blog")
 def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    new_blog = models.Blog(title=blog.title, content=blog.content)
+    new_blog = models.Blog(title=blog.title, content=blog.content, user_id=current_user.id)
     db.add(new_blog)
     db.commit()
     db.refresh(new_blog)
@@ -35,7 +35,7 @@ def create_blog(blog: schemas.BlogCreate, db: Session = Depends(get_db), current
 
 @app.get("/blog-list", response_model=list[schemas.BlogResponse])
 def get_blogs(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    blog_list = db.query(models.Blog).order_by(models.Blog.updated_at.desc()).all()
+    blog_list = db.query(models.Blog).filter(models.Blog.user_id == current_user.id).order_by(models.Blog.updated_at.desc()).all()
     return get_response_schema(blog_list, SuccessMessage.RECORD_RETRIEVED.value, status.HTTP_200_OK)
 
 
@@ -46,7 +46,7 @@ def get_blog(id: int, db: Session = Depends(get_db), current_user: User = Depend
     print(current_user.email)
     print(current_user.first_name)
     print(current_user.last_name)
-    blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
+    blog_record = db.query(models.Blog).filter(models.Blog.id == id, models.Blog.user_id == current_user.id).first()
     if not blog_record:
         return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
 
@@ -54,9 +54,9 @@ def get_blog(id: int, db: Session = Depends(get_db), current_user: User = Depend
 
 @app.put("/blog/{id}")
 def update_blog(id: int, blog: schemas.BlogUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
-    if not blog:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
+    blog_record = db.query(models.Blog).filter(models.Blog.id == id, models.Blog.user_id == current_user.id).first()
+    if not blog_record:
+        return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
 
     blog_record.title = blog.title
     blog_record.content = blog.content
@@ -68,9 +68,9 @@ def update_blog(id: int, blog: schemas.BlogUpdate, db: Session = Depends(get_db)
 
 @app.delete("/blog/{id}")
 def delete_blog(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    blog_record = db.query(models.Blog).filter(models.Blog.id == id).first()
+    blog_record = db.query(models.Blog).filter(models.Blog.id == id, models.Blog.user_id == current_user.id).first()
     if not blog_record:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ErrorMessage.NOT_FOUND.value)
+        return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
     db.delete(blog_record)
     db.commit()
     return get_response_schema({}, SuccessMessage.RECORD_DELETED.value, status.HTTP_204_NO_CONTENT)
