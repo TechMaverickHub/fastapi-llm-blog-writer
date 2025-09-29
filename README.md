@@ -6,9 +6,8 @@ A **Blog API built with FastAPI** that lets users create, manage, and publish bl
 - User authentication (JWT-based).
 - CRUD operations for blogs.
 - LLM-powered blog assistant:
-  - Generate blog drafts.
-  - Expand ideas or outlines.
-  - Rewrite content in different tones/styles.
+  - Generate blog Topics.
+  - Suggest blog points.
 - RESTful API with interactive Swagger docs.
 - SQLite/Postgres support.
 - Dockerized for easy deployment.
