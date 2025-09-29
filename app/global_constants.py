@@ -19,5 +19,10 @@ class ErrorMessage(str, Enum):
     NOT_FOUND = "Record not found."
     SOMETHING_WENT_WRONG = "Something went wrong. Please try again later."
 
+    SERVER_MISCONFIGURED = "Server configuration error: missing GROQ_API_KEY."
+    ANSWER_GENERATION_FAILED = "We’re having trouble generating an answer. Please try again."
+
+
+
 class ErrorKeys(str, Enum):
     NON_FIELD_ERROR = "detail"
