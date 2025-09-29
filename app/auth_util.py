@@ -2,9 +2,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
+from app.auth.model import User
 from app.database import get_db
 from app.jwt_utils import verify_token
-from app.models import User
 
 # Swagger will now show simple "Authorize" for Bearer token
 bearer_scheme = HTTPBearer()
