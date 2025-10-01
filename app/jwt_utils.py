@@ -24,7 +24,7 @@ def create_refresh_token(user_id: int):
     payload = {"sub": str(user_id), "exp": expire}
     return jwt.encode(payload, SECRET, algorithm="HS256")
 
-def verify_token(token: str, db: Session):
+def verify_access_token(token: str, db: Session):
     try:
         payload = jwt.decode(token, SECRET, algorithms=["HS256"])
         blacklisted = db.query(BlacklistedToken).filter_by(token=token).first()
@@ -54,4 +54,11 @@ def blacklist_token(token: str, db: Session):
         return None
 
     except Exception as e:
+        return None
+
+def verify_refresh_token(token: str):
+    try:
+        payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=["HS256"])
+        return int(payload.get("sub"))
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None
