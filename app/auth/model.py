@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime, Boolean, func, String
+from sqlalchemy import Column, Integer, DateTime, Boolean, func, String, Text
 
 from app.database import Base
 
@@ -20,3 +20,12 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, default=True)
+
+
+class BlacklistedToken(Base):
+    __tablename__ = "blacklisted_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(Text, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -28,11 +28,7 @@ def get_blogs(db: Session = Depends(get_db), current_user: User = Depends(get_cu
 
 @router.get("/blog/{id}")
 def get_blog(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    print("Current user============")
-    print(current_user.id)
-    print(current_user.email)
-    print(current_user.first_name)
-    print(current_user.last_name)
+
     blog_record = db.query(Blog).filter(Blog.id == id, Blog.user_id == current_user.id).first()
     if not blog_record:
         return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
